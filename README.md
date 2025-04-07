@@ -33,7 +33,7 @@ Este projeto simula a análise de transações bancárias para detectar fraudes 
 
 ### Pré-requisitos
 
-Antes de rodar o código, você precisa ter o Python instalado em sua máquina. Também será necessário instalar as dependências listadas no arquivo `requirements.txt`.
+Antes de rodar o código, você precisa ter o Python instalado em sua máquina. Também será necessário instalar as dependências.
 
 ### Instalação
 
