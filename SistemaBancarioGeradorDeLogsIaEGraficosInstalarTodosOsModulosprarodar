@@ -1,0 +1,97 @@
+import json
+import random
+from datetime import datetime
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.preprocessing import StandardScaler
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 1. Simulação do Log - Geração de Arquivo JSON com Dados Fictícios
+def generate_logs(num_entries=100):
+    logs = []
+    for _ in range(num_entries):
+        log = {
+            "id_transferencia": random.randint(1000, 9999),
+            "id_conta_origem": random.randint(10000, 99999),
+            "id_conta_destino": random.randint(10000, 99999),
+            "valor_transferencia": round(random.uniform(100, 10000), 2),
+            "data_transferencia": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "ip_origem": f"192.168.1.{random.randint(1, 255)}",
+            "tipo_transferencia": random.choice(["PIX", "TED", "DOC"]),
+        }
+        logs.append(log)
+    
+    with open("logs.json", "w") as f:
+        json.dump(logs, f, indent=4)
+
+# Gerar o arquivo de logs fictício
+generate_logs()
+
+# 2. Ingestão dos Dados - Carregamento do JSON para DataFrame
+def load_logs():
+    with open("logs.json", "r") as f:
+        data = json.load(f)
+    return pd.DataFrame(data)
+
+df_logs = load_logs()
+
+# 3. Pré-processamento - Normalização e Transformação dos Dados
+def preprocess_logs(df):
+    df["valor_transferencia"] = df["valor_transferencia"].astype(float)
+    df["data_transferencia"] = pd.to_datetime(df["data_transferencia"])
+    df["ip_origem"] = df["ip_origem"].astype(str)
+    return df
+
+df_logs = preprocess_logs(df_logs)
+
+# 4. Treinamento do Modelo de IA - Regressão Logística
+# Simular rótulos de fraude (0 = normal, 1 = suspeito, 2 = crítico)
+df_logs["fraude"] = np.random.choice([0, 1, 2], size=len(df_logs), p=[0.8, 0.15, 0.05])
+
+# Separar variáveis preditoras e alvo
+X = df_logs[["valor_transferencia"]]
+y = df_logs["fraude"]
+
+# Normalizar os dados
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# Separar dados de treino e teste
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+# Treinar modelo
+model = LogisticRegression(multi_class="multinomial", solver="lbfgs")
+model.fit(X_train, y_train)
+
+# 5. Classificação de Novas Transações
+def classify_transaction(valor):
+    valor_transformado = scaler.transform([[valor]])
+    classificacao = model.predict(valor_transformado)[0]
+    
+    categorias = {0: "Normal", 1: "Suspeito", 2: "Crítico"}
+    return categorias[classificacao]
+
+# Exemplo de classificação
+novo_valor = 5000
+print(f"Transação de {novo_valor} é classificada como: {classify_transaction(novo_valor)}")
+
+# 6. Resposta Automatizada - Geração de Alertas para Transações Críticas
+def generate_alerts(df):
+    criticos = df[df["fraude"] == 2]
+    if not criticos.empty:
+        print("⚠️ ALERTA! Transações fraudulentas detectadas:")
+        print(criticos[["id_transferencia", "valor_transferencia"]])
+
+generate_alerts(df_logs)
+
+# 7. Visualização - Criar Gráficos para Análise de Dados
+sns.histplot(df_logs["valor_transferencia"], bins=30, kde=True)
+plt.title("Distribuição de Valores de Transferência")
+plt.xlabel("Valor (R$)")
+plt.ylabel("Frequência")
+plt.show()
+
+
