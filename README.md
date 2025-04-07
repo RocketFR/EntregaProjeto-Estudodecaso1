@@ -1,6 +1,6 @@
 # Sistema de Detecção de Fraudes em Transações Bancárias
 
-Este projeto simula a análise de transações bancárias para detectar fraudes utilizando técnicas de aprendizado de máquina. Através da geração de logs fictícios de transferências financeiras (PIX, TED, DOC), o sistema classifica e gera alertas para transações suspeitas ou críticas com base no valor da transferência.
+Este projeto simula a análise de transações bancárias para detectar fraudes utilizando técnicas de aprendizado de máquina (Fraude/Não Fraude. A partir de geração de logs gerador proceduralmente de transferências financeiras (PIX, TED, DOC), o sistema classifica e gera alertas para transações suspeitas ou fraudulentas com base no valor da transferência.
 
 ## Funcionalidades
 
