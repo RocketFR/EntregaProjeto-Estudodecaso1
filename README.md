@@ -43,7 +43,7 @@ Antes de rodar o código, você precisa ter o Python instalado em sua máquina. 
    git clone https://github.com/RocketFR/EntregaProjeto-Estudodecaso1.git
    cd Estudodecaso1
 
-2. faça o pip das seguintes bibliotecas
+2. faça o pip das seguintes bibliotecas:
 
 
  ```bash
