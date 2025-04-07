@@ -1,97 +1,111 @@
-import json
-import random
-from datetime import datetime
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import StandardScaler
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+# Importação das bibliotecas necessárias
+import json  # Para trabalhar com arquivos JSON
+import random  # Para gerar dados aleatórios
+from datetime import datetime  # Para trabalhar com datas e horários
+import pandas as pd  # Para trabalhar com dataframes (estruturas de dados tabulares)
+from sklearn.model_selection import train_test_split  # Para dividir os dados em conjuntos de treino e teste
+from sklearn.linear_model import LogisticRegression  # Para usar o modelo de Regressão Logística
+from sklearn.preprocessing import StandardScaler  # Para normalizar os dados
+import numpy as np  # Para manipulação de arrays numéricos
+import matplotlib.pyplot as plt  # Para criação de gráficos
+import seaborn as sns  # Para melhorar a visualização de gráficos
 
 # 1. Simulação do Log - Geração de Arquivo JSON com Dados Fictícios
 def generate_logs(num_entries=100):
-    logs = []
+    logs = []  # Lista para armazenar os logs simulados
     for _ in range(num_entries):
+        # Criando um dicionário de log com dados aleatórios
         log = {
-            "id_transferencia": random.randint(1000, 9999),
-            "id_conta_origem": random.randint(10000, 99999),
-            "id_conta_destino": random.randint(10000, 99999),
-            "valor_transferencia": round(random.uniform(100, 10000), 2),
-            "data_transferencia": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "ip_origem": f"192.168.1.{random.randint(1, 255)}",
-            "tipo_transferencia": random.choice(["PIX", "TED", "DOC"]),
+            "id_transferencia": random.randint(1000, 9999),  # ID aleatório para a transferência
+            "id_conta_origem": random.randint(10000, 99999),  # ID aleatório da conta de origem
+            "id_conta_destino": random.randint(10000, 99999),  # ID aleatório da conta de destino
+            "valor_transferencia": round(random.uniform(100, 10000), 2),  # Valor da transferência (aleatório entre 100 e 10000)
+            "data_transferencia": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # Data e hora da transferência
+            "ip_origem": f"192.168.1.{random.randint(1, 255)}",  # IP de origem gerado aleatoriamente
+            "tipo_transferencia": random.choice(["PIX", "TED", "DOC"]),  # Tipo de transferência aleatório
         }
-        logs.append(log)
+        logs.append(log)  # Adiciona o log à lista
     
+    # Salva os logs gerados em um arquivo JSON
     with open("logs.json", "w") as f:
         json.dump(logs, f, indent=4)
 
-# Gerar o arquivo de logs fictício
+# Chamada da função para gerar o arquivo de logs fictício
 generate_logs()
 
 # 2. Ingestão dos Dados - Carregamento do JSON para DataFrame
 def load_logs():
+    # Carrega o arquivo JSON e converte para um DataFrame do Pandas
     with open("logs.json", "r") as f:
-        data = json.load(f)
-    return pd.DataFrame(data)
+        data = json.load(f)  # Lê os dados do arquivo JSON
+    return pd.DataFrame(data)  # Converte os dados para um DataFrame
 
+# Carregar os dados dos logs no DataFrame
 df_logs = load_logs()
 
 # 3. Pré-processamento - Normalização e Transformação dos Dados
 def preprocess_logs(df):
-    df["valor_transferencia"] = df["valor_transferencia"].astype(float)
-    df["data_transferencia"] = pd.to_datetime(df["data_transferencia"])
-    df["ip_origem"] = df["ip_origem"].astype(str)
-    return df
+    # Converte as colunas para os tipos de dados corretos
+    df["valor_transferencia"] = df["valor_transferencia"].astype(float)  # Valor da transferência para float
+    df["data_transferencia"] = pd.to_datetime(df["data_transferencia"])  # Converte a data para datetime
+    df["ip_origem"] = df["ip_origem"].astype(str)  # IP de origem para string
+    return df  # Retorna o DataFrame processado
 
+# Pré-processa os dados dos logs
 df_logs = preprocess_logs(df_logs)
 
 # 4. Treinamento do Modelo de IA - Regressão Logística
 # Simular rótulos de fraude (0 = normal, 1 = suspeito, 2 = crítico)
 df_logs["fraude"] = np.random.choice([0, 1, 2], size=len(df_logs), p=[0.8, 0.15, 0.05])
 
-# Separar variáveis preditoras e alvo
-X = df_logs[["valor_transferencia"]]
-y = df_logs["fraude"]
+# Separar variáveis preditoras (X) e variável alvo (y)
+X = df_logs[["valor_transferencia"]]  # Usamos o valor da transferência como variável preditora
+y = df_logs["fraude"]  # A coluna fraude é a variável alvo (rótulos)
 
-# Normalizar os dados
+# Normalizar os dados para melhorar o desempenho do modelo
 scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+X_scaled = scaler.fit_transform(X)  # Aplica a normalização nos dados de entrada
 
-# Separar dados de treino e teste
+# Dividir os dados em conjuntos de treino (80%) e teste (20%)
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
-# Treinar modelo
+# Inicializar e treinar o modelo de Regressão Logística
 model = LogisticRegression(multi_class="multinomial", solver="lbfgs")
 model.fit(X_train, y_train)
 
 # 5. Classificação de Novas Transações
 def classify_transaction(valor):
+    # Normaliza o valor de entrada
     valor_transformado = scaler.transform([[valor]])
+    # Prediz a classe (fraude) usando o modelo treinado
     classificacao = model.predict(valor_transformado)[0]
     
+    # Mapeia os rótulos para categorias compreensíveis
     categorias = {0: "Normal", 1: "Suspeito", 2: "Crítico"}
-    return categorias[classificacao]
+    return categorias[classificacao]  # Retorna a categoria correspondente
 
-# Exemplo de classificação
+# Exemplo de classificação de uma transação
 novo_valor = 5000
 print(f"Transação de {novo_valor} é classificada como: {classify_transaction(novo_valor)}")
 
 # 6. Resposta Automatizada - Geração de Alertas para Transações Críticas
 def generate_alerts(df):
+    # Filtra transações críticas (fraude == 2)
     criticos = df[df["fraude"] == 2]
     if not criticos.empty:
+        # Exibe um alerta caso existam transações críticas
         print("⚠️ ALERTA! Transações fraudulentas detectadas:")
         print(criticos[["id_transferencia", "valor_transferencia"]])
 
+# Gera alertas para transações críticas no DataFrame
 generate_alerts(df_logs)
 
 # 7. Visualização - Criar Gráficos para Análise de Dados
+# Cria um histograma para visualizar a distribuição dos valores das transferências
 sns.histplot(df_logs["valor_transferencia"], bins=30, kde=True)
-plt.title("Distribuição de Valores de Transferência")
-plt.xlabel("Valor (R$)")
-plt.ylabel("Frequência")
-plt.show()
+plt.title("Distribuição de Valores de Transferência")  # Título do gráfico
+plt.xlabel("Valor (R$)")  # Rótulo do eixo X
+plt.ylabel("Frequência")  # Rótulo do eixo Y
+plt.show()  # Exibe o gráfico
 
 
